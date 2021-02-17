@@ -178,6 +178,12 @@ func (s *Stream) Stop() {
 	s.group.Wait()
 }
 
+// HTTPStatusCode contains http status code on request. Used to detect if credentials are invalid.
+type HTTPStatusCode struct {
+	StatusCode int
+	Status     string
+}
+
 // retry retries making the given http.Request and receiving the response
 // according to the Twitter backoff policies. Callers should invoke in a
 // goroutine since backoffs sleep between retries.
@@ -189,7 +195,9 @@ func (s *Stream) retry(req *http.Request, expBackOff backoff.BackOff, aggExpBack
 
 	var wait time.Duration
 	for !stopped(s.done) {
+
 		resp, err := s.client.Do(req)
+
 		if err != nil {
 			// stop retrying for HTTP protocol errors
 			s.Messages <- err
@@ -198,6 +206,12 @@ func (s *Stream) retry(req *http.Request, expBackOff backoff.BackOff, aggExpBack
 		// when err is nil, resp contains a non-nil Body which must be closed
 		defer resp.Body.Close()
 		s.body = resp.Body
+
+		s.Messages <- HTTPStatusCode{
+			StatusCode: resp.StatusCode,
+			Status:     resp.Status,
+		}
+
 		switch resp.StatusCode {
 		case 200:
 			// receive stream response Body, handles closing
