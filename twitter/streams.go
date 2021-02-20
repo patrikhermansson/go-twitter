@@ -39,18 +39,18 @@ func newStreamService(client *http.Client, sling *sling.Sling) *StreamService {
 
 // StreamFilterParams are parameters for StreamService.Filter.
 type StreamFilterParams struct {
-	FilterLevel   string   `url:"filter_level,omitempty"`
-	Follow        []string `url:"follow,omitempty,comma"`
-	Language      []string `url:"language,omitempty,comma"`
-	Locations     []string `url:"locations,omitempty,comma"`
-	StallWarnings *bool    `url:"stall_warnings,omitempty"`
-	Track         []string `url:"track,omitempty,comma"`
+	FilterLevel   string   `url:"filter_level,omitempty" json:"filter_level,omitempty"`
+	Follow        []string `url:"follow,omitempty,comma" json:"follow,omitempty"`
+	Language      []string `url:"language,omitempty,comma" json:"language,omitempty"`
+	Locations     []string `url:"locations,omitempty,comma" json:"locations,omitempty"`
+	StallWarnings *bool    `url:"stall_warnings,omitempty" json:"stall_warnings,omitempty"`
+	Track         []string `url:"track,omitempty,comma" json:"track,omitempty"`
 }
 
 // Filter returns messages that match one or more filter predicates.
 // https://dev.twitter.com/streaming/reference/post/statuses/filter
 func (srv *StreamService) Filter(params *StreamFilterParams) (*Stream, error) {
-	req, err := srv.public.New().Post("filter.json").QueryStruct(params).Request()
+	req, err := srv.public.New().Post("filter.json").BodyForm(params).Request()
 	if err != nil {
 		return nil, err
 	}
